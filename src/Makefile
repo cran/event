@@ -1,10 +1,9 @@
 LIBNAME=event
-LD=ld
 
 OBJS=	 ksurvb.o ksurvg.o inthaz.o survkit.o
 
 $(LIBNAME).$(SHLIBEXT):	$(OBJS)
-	$(LD) $(SHLIBLDFLAGS) -o $@ $(OBJS)
+	$(SHLIBLD) $(SHLIBLDFLAGS) $(FLIBS) -o $@ $(OBJS)
 
 clean:
 	@rm -f *.o *.$(SHLIBEXT)

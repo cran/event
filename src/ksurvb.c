@@ -112,10 +112,10 @@ void ksurvb(double p[],double y[],double x[],int cens[],int *nind,int nobs[],
 	      if(bt<-40)bt=-40;
 	      bt=exp(bt)*beta;}
 	    else bt+=beta;}
-	  else bt=beta;}
+	  else bt=beta;
 	  if(*birth){
 	    if(*model<4)bt*=pow(j+1.,p[*nccov+1]);
-	    else bt+=p[*nccov+1]*log(j+1);}
+	    else bt+=p[*nccov+1]*log(j+1);}}
 	else if(*tvc)bt=bb[nm];
 	if(!*density){
 	  /* intensity models */

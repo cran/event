@@ -44,22 +44,22 @@ ksurvb <- function(p){
 	if(sf)v <- sh1(p[nps1:np])
 	z <- .C("ksurvb",
 		p=as.double(p),
-		y=as.double(response$response$y),
-		x=as.double(response$ccov$ccov),
-		cens=as.integer(response$response$censor),
+		y=as.double(resp$response$y),
+		x=as.double(resp$ccov$ccov),
+		cens=as.integer(resp$response$censor),
 		nind=as.integer(nind),
-		nobs=as.integer(response$response$nobs),
-		nbs=as.integer(length(response$response$y)),
+		nobs=as.integer(resp$response$nobs),
+		nbs=as.integer(length(resp$response$y)),
 		nccov=as.integer(nccov),
 		model=as.integer(mdl),
 		density=as.integer(density),
 		dep=as.integer(dep),
 		birth=as.integer(birth),
 		tvc=as.integer(tvc),
-		tvcov=as.double(response$tvcov$tvcov),
+		tvcov=as.double(resp$tvcov$tvcov),
 		fit=as.integer(0),
-		pred=double(length(response$response$y)),
-		rpred=double(length(response$response$y)),
+		pred=double(length(resp$response$y)),
+		rpred=double(length(resp$response$y)),
 		renewal=as.integer(renewal),
 		rf=as.integer(rf),
 		bb=as.double(b),
@@ -73,12 +73,12 @@ ksurvg <- function(p){
 	if(sf)v <- sh1(p[nps1:np])
 	z <- .C("ksurvg",
 		p=as.double(p),
-		y=as.double(response$response$y),
-		x=as.double(response$ccov$ccov),
-		cens=as.integer(response$response$censor),
+		y=as.double(resp$response$y),
+		x=as.double(resp$ccov$ccov),
+		cens=as.integer(resp$response$censor),
 		nind=as.integer(nind),
-		nobs=as.integer(response$response$nobs),
-		nbs=as.integer(length(response$response$y)),
+		nobs=as.integer(resp$response$nobs),
+		nbs=as.integer(length(resp$response$y)),
 		nccov=as.integer(nccov),
 		model=as.integer(mdl),
 		distribution=as.integer(dst),
@@ -86,10 +86,10 @@ ksurvg <- function(p){
 		dep=as.integer(dep),
 		birth=as.integer(birth),
 		tvc=as.integer(tvc),
-		tvcov=as.double(response$tvcov$tvcov),
+		tvcov=as.double(resp$tvcov$tvcov),
 		fit=as.integer(0),
-		pred=double(length(response$response$y)),
-		rpred=double(length(response$response$y)),
+		pred=double(length(resp$response$y)),
+		rpred=double(length(resp$response$y)),
 		renewal=as.integer(renewal),
 		rf=as.integer(rf),
 		bb=as.double(b),
@@ -103,22 +103,22 @@ frailb <- function(p){
 	if(sf)v <- sh1(p[nps1:np])
 	z <- .C("frailb",
 		p=as.double(p),
-		y=as.double(response$response$y),
-		x=as.double(response$ccov$ccov),
-		cens=as.integer(response$response$censor),
+		y=as.double(resp$response$y),
+		x=as.double(resp$ccov$ccov),
+		cens=as.integer(resp$response$censor),
 		nind=as.integer(nind),
-		nobs=as.integer(response$response$nobs),
-		nbs=as.integer(length(response$response$y)),
+		nobs=as.integer(resp$response$nobs),
+		nbs=as.integer(length(resp$response$y)),
 		nccov=as.integer(nccov),
 		model=as.integer(mdl),
 		density=as.integer(density),
 		dep=as.integer(dep),
 		birth=as.integer(birth),
 		tvc=as.integer(tvc),
-		tvcov=as.double(response$tvcov$tvcov),
+		tvcov=as.double(resp$tvcov$tvcov),
 		fit=as.integer(0),
-		pred=double(length(response$response$y)),
-		rpred=double(length(response$response$y)),
+		pred=double(length(resp$response$y)),
+		rpred=double(length(resp$response$y)),
 		rf=as.integer(rf),
 		bb=as.double(b),
 		sf=as.integer(sf),
@@ -137,13 +137,17 @@ tmp <- c("elapsed Markov","serial","Markov","event","cumulated","count","kalman"
 dep <- match(update <- match.arg(update,tmp),tmp)
 rf <- !is.null(mu)
 sf <- !is.null(shape)
-if(!inherits(response,"repeated")){
+respenv <- inherits(response,"repeated")
+envname <- if(respenv)paste(deparse(substitute(response)))
+	else NULL
+if(!respenv){
 	if(!inherits(response,"response")){
 		if(is.null(censor)){
 			if(is.matrix(response)||is.data.frame(response))
 				censor <- rep(1,nrow(response))
 			else if(is.list(response))censor <- rep(1,length(response))}
-		response <- restovec(response,censor=censor,delta=delta)}
+		resp <- restovec(response,censor=censor,delta=delta)}
+	else resp <- response
 	if(is.null(ccov))nccov <- 0
 	else {
 		if(!inherits(ccov,"tccov")){
@@ -156,7 +160,8 @@ if(!inherits(response,"repeated")){
 					ccname <- tmp}}
 			ccov <- tcctomat(ccov,names=ccname)}
 		nccov <- if(rf) 0 else ncol(ccov$ccov)}
-	if(!is.null(tvcov)){
+	if(is.null(tvcov))ttvc <- 0
+	else {
 		if(!inherits(tvcov,"tvcov")){
 			tvcname <- paste(deparse(substitute(tvcov)))
 			if(is.list(tvcov)&&ncol(tvcov[[1]])>1){
@@ -168,50 +173,67 @@ if(!inherits(response,"repeated")){
 				else tvcname <- colnames(tvcov[[1]])}
 			tvcov <- tvctomat(tvcov, names=tvcname)}
 		ttvc <- if(rf) 0 else ncol(tvcov$tvcov)}
-	else ttvc <- 0
-	response <- rmna(response=response, tvcov=tvcov, ccov=ccov)
+	resp <- rmna(response=resp, tvcov=tvcov, ccov=ccov)
 	if(!is.null(ccov))rm(ccov)
 	if(!is.null(tvcov))rm(tvcov)}
 else {
-	nccov <- if(rf||is.null(response$ccov$ccov)) 0
-		 else  ncol(response$ccov$ccov)
-	ttvc <- if(rf||is.null(response$tvcov$tvcov)) 0
-		 else  ncol(response$tvcov$tvcov)}
+	if(!rf){
+		resp <- response
+		if(is.null(ccov))resp$ccov <- NULL
+		else if(inherits(ccov,"formula"))
+			resp$ccov$ccov <- attr(finterp(ccov,envir=response,expand=F,name=paste(deparse(substitute(response)))),"model")[,-1,drop=F]
+		else stop("ccov must be a W&R formula")
+		if(is.null(tvcov))resp$tvcov <- NULL
+		else if(inherits(tvcov,"formula"))
+			resp$tvcov$tvcov <- attr(finterp(tvcov,envir=response,name=paste(deparse(substitute(response)))),"model")[,-1,drop=F]
+		else stop("tvcov must be a W&R formula")}
+	else resp <- rmna(response$response)
+	nccov <- if(rf||is.null(resp$ccov$ccov)) 0
+		 else  ncol(resp$ccov$ccov)
+	ttvc <- if(rf||is.null(resp$tvcov$tvcov)) 0
+		 else  ncol(resp$tvcov$tvcov)}
 if((inherits(envir,"repeated")&&
-	(length(response$response$nobs)!=length(envir$response$nobs)||
-	any(response$response$nobs!=envir$response$nobs)))||
+	(length(resp$response$nobs)!=length(envir$response$nobs)||
+	any(resp$response$nobs!=envir$response$nobs)))||
 	(inherits(envir,"tvcov")&&
-	(length(response$response$nobs)!=length(envir$tvcov$nobs)||
-	any(response$response$nobs!=envir$tvcov$nobs))))
+	(length(resp$response$nobs)!=length(envir$tvcov$nobs)||
+	any(resp$response$nobs!=envir$tvcov$nobs))))
 	stop("response and envir objects are incompatible")
-mu3 <- sh3 <- name <- NULL
-if(inherits(envir,"repeated")||inherits(envir,"tccov")){
-	type <- if(inherits(envir,"repeated"))"repeated"
+mu3 <- sh3 <- NULL
+if(respenv||inherits(envir,"repeated")||inherits(envir,"tccov")){
+	type <- if(respenv||inherits(envir,"repeated"))"repeated"
 		else if(inherits(envir,"tccov"))"tccov"
 		else "tvcov"
-	name <- paste(deparse(substitute(envir)))
+	if(is.null(envname))envname <- paste(deparse(substitute(envir)))
 	if(inherits(mu,"formula")){
-		mu3 <- finterp(mu)
+		mu3 <- if(respenv)finterp(mu,envir=response,name=envname)
+			else finterp(mu,envir=envir,name=envname)
 		class(mu) <- c(class(mu),type)}
 	else if(is.function(mu)){
-		mu3 <- mu
-		attributes(mu3) <- attributes(fnenvir(mu))
+		tmp <- parse(text=paste(deparse(mu))[-1])
 		class(mu) <- type
-		mu <- fnenvir(mu,envir=envir,name=name)}
+		mu <- if(respenv)fnenvir(mu,envir=response,name=envname)
+			else fnenvir(mu,envir=envir,name=envname)
+		mu3 <- mu
+		if(respenv)attr(mu3,"model") <- tmp}
 	if(inherits(shape,"formula")){
-		sh3 <- finterp(shape)
+		sh3 <- if(respenv)finterp(shape,envir=response,name=envname)
+			else finterp(shape,envir=envir,name=envname)
 		class(shape) <- c(class(shape),type)}
 	else if(is.function(shape)){
-		sh3 <- shape
-		attributes(sh3) <- attributes(fnenvir(shape))
+		tmp <- parse(text=paste(deparse(shape))[-1])
 		class(shape) <- type
-		shape <- fnenvir(shape,envir=envir,name=name)}}
+		shape <- if(respenv)fnenvir(shape,envir=response,name=envname)
+			else fnenvir(shape,envir=envir,name=envname)
+		sh3 <- shape
+		if(respenv)attr(sh3,"model") <- tmp}}
 npreg <- length(preg)
 mu1 <- sh1 <- v <- b <- NULL
 if(inherits(mu,"formula")){
 	pr <- if(npreg>0)preg else ptvc
 	npr <- length(pr)
-	mu2 <- finterp(mu,envir=envir,name=name,expand=is.null(preg))
+	mu2 <- if(respenv)finterp(mu,envir=response,name=envname,expand=is.null(preg))
+		else finterp(mu,envir=envir,name=envname,expand=is.null(preg))
 	npt1 <- length(attr(mu2,"parameters"))
 	if(is.matrix(attr(mu2,"model"))){
 		if(all(dim(attr(mu2,"model"))==1)){
@@ -241,9 +263,13 @@ if(inherits(mu,"formula")){
 else if(is.function(mu))mu1 <- mu
 if(!is.null(mu1)&&is.null(attributes(mu1))){
 	attributes(mu1) <- if(is.function(mu)){
-		if(!inherits(mu,"formulafn"))attributes(fnenvir(mu))
+		if(!inherits(mu,"formulafn")){
+			if(respenv)attributes(fnenvir(mu,envir=response))
+			else attributes(fnenvir(mu,envir=envir))}
 		else attributes(mu)}
-		else attributes(fnenvir(mu1))}
+		else {
+			if(respenv)attributes(fnenvir(mu1,envir=response))
+			else attributes(fnenvir(mu1,envir=envir))}}
 nlp <- if(is.function(mu1))length(attr(mu1,"parameters"))
 	else if(is.null(mu1))NULL
 	else npt1
@@ -254,7 +280,8 @@ if(!is.null(nlp)){
 		stop(paste("ptvc should have",nlp,"initial estimates"))}
 nps <- length(pshape)
 if(inherits(shape,"formula")){
-	sh2 <- finterp(shape,envir=envir,name=name)
+	sh2 <- if(respenv)finterp(shape,envir=response,name=envname)
+		else finterp(shape,envir=envir,name=envname)
 	npt2 <- length(attr(sh2,"parameters"))
 	if(is.matrix(attr(sh2,"model"))){
 		if(all(dim(attr(sh2,"model"))==1)){
@@ -283,9 +310,13 @@ if(inherits(shape,"formula")){
 else if(is.function(shape))sh1 <- shape
 if(!is.null(sh1)&&is.null(attributes(sh1)))
 	attributes(sh1) <- if(is.function(shape)){
-		if(!inherits(shape,"formulafn"))attributes(fnenvir(shape))
+		if(!inherits(shape,"formulafn")){
+			if(respenv)attributes(fnenvir(shape,envir=response))
+			else attributes(fnenvir(shape,envir=envir))}
 		else attributes(shape)}
-		else attributes(fnenvir(sh1))
+		else {
+			if(respenv)attributes(fnenvir(sh1,envir=response))
+			else attributes(fnenvir(sh1,envir=envir))}
 nlp <- if(is.function(shape))length(attr(sh1,"parameters"))
 	else if(is.null(shape))NULL
 	else npt2
@@ -327,27 +358,26 @@ else if(depend=="frailty"){
 		dep <- 0
 		update <- "no"}
 	if(!is.null(pdepend))pdepend <- NULL}
-if(is.null(response$response$censor))
-	response$response$censor <- rep(1,length(response$response$y))
+if(is.null(resp$response$censor))
+	resp$response$censor <- rep(1,length(resp$response$y))
 if(rf&&npreg>0)nccov <- npreg-1
 if(!rf&&nccov+1!=npreg)
 	stop(paste(nccov+1,"regression estimates must be supplied"))
-nind <- length(response$response$nobs)
-if(any(response$response$y<0))stop("All times must be non-negative")
-if(ttvc>0){
-	np <- np+tvc
-	if(tvc!=ttvc)stop(paste(ttvc,"initial estimates of coefficients for time-varying covariates must be supplied"))}
+nind <- length(resp$response$nobs)
+if(any(resp$response$y<0))stop("All times must be non-negative")
+if(ttvc>0)np <- np+tvc
+if(!rf&&(ttvc>0&&tvc!=ttvc||ttvc==0&&tvc>0))stop(paste(ttvc,"initial estimates of coefficients for time-varying covariates must be supplied"))
 if(rf){
 	if(tvc>0&&nccov>0)stop("With a mean function, initial estimates must be supplied either in preg or in ptvc")
 	if(tvc>0){
-		if(length(mu1(ptvc))!=length(response$response$y))stop("The mu function must provide an estimate for each observation")
+		if(length(mu1(ptvc))!=length(resp$response$y))stop("The mu function must provide an estimate for each observation")
 		tvc <- tvc-1
 		np <- np+tvc}
 	else if(length(mu1(preg))==1){
-		if(nccov==0)mu1 <- function(p) rep(p[1],length(response$response$y))
+		if(nccov==0)mu1 <- function(p) rep(p[1],length(resp$response$y))
 		else stop("Number of estimates does not correspond to mu function")}
 	else if(length(mu1(preg))!=nind)stop("The mu function must provide an estimate for each individual")}
-if(sf&&length(sh1(pshape))!=length(response$response$y))stop("The shape function must provide an estimate for each observation")
+if(sf&&length(sh1(pshape))!=length(resp$response$y))stop("The shape function must provide an estimate for each observation")
 nps1 <- np-nps-(!is.null(pintercept))+1
 p <- c(preg,pbirth,ptvc,pinitial,pdepend,pshape,pintercept)
 if(distribution=="Pareto"){
@@ -364,10 +394,10 @@ z0 <- nlm(surv, p=p, hessian=T, print.level=print.level,
 	steptol=steptol, iterlim=iterlim, fscale=fscale)
 p <- z0$estimate
 like <- z0$minimum
-if(!is.null(response$response$delta))like <- like-
-	if(length(response$response$delta)==1)
-		length(response$response$y)*log(response$response$delta)
-	else sum(log(response$response$delta))
+if(!is.null(resp$response$delta))like <- like-
+	if(length(resp$response$delta)==1)
+		length(resp$response$y)*log(resp$response$delta)
+	else sum(log(resp$response$delta))
 if(any(is.na(z0$hessian)))a <- 0
 else a <- qr(z0$hessian)$rank
 if(a==np)cov <- solve(z0$hessian)
@@ -382,22 +412,22 @@ else {
 		if(sf)v <- sh1(p[nps1:np])
 		z <- .C("frailb",
 			p=as.double(p),
-			y=as.double(response$response$y),
-			x=as.double(response$ccov$ccov),
-			cens=as.integer(response$response$censor),
+			y=as.double(resp$response$y),
+			x=as.double(resp$ccov$ccov),
+			cens=as.integer(resp$response$censor),
 			nind=as.integer(nind),
-			nobs=as.integer(response$response$nobs),
-			nbs=as.integer(length(response$response$y)),
+			nobs=as.integer(resp$response$nobs),
+			nbs=as.integer(length(resp$response$y)),
 			nccov=as.integer(nccov),
 			model=as.integer(mdl),
 			density=as.integer(density),
 			dep=as.integer(dep),
 			birth=as.integer(birth),
 			tvc=as.integer(tvc),
-			tvcov=as.double(response$tvcov$tvcov),
+			tvcov=as.double(resp$tvcov$tvcov),
 			fit=as.integer(1),
-			pred=double(length(response$response$y)),
-			rpred=double(length(response$response$y)),
+			pred=double(length(resp$response$y)),
+			rpred=double(length(resp$response$y)),
 			rf=as.integer(rf),
 			bb=as.double(b),
 			sf=as.integer(sf),
@@ -409,22 +439,22 @@ else {
 		if(sf)v <- sh1(p[nps1:np])
 		z <- .C("ksurvb",
 			p=as.double(p),
-			y=as.double(response$response$y),
-			x=as.double(response$ccov$ccov),
-			cens=as.integer(response$response$censor),
+			y=as.double(resp$response$y),
+			x=as.double(resp$ccov$ccov),
+			cens=as.integer(resp$response$censor),
 			nind=as.integer(nind),
-			nobs=as.integer(response$response$nobs),
-			nbs=as.integer(length(response$response$y)),
+			nobs=as.integer(resp$response$nobs),
+			nbs=as.integer(length(resp$response$y)),
 			nccov=as.integer(nccov),
 			model=as.integer(mdl),
 			density=as.integer(density),
 			dep=as.integer(dep),
 			birth=as.integer(birth),
 			tvc=as.integer(tvc),
-			tvcov=as.double(response$tvcov$tvcov),
+			tvcov=as.double(resp$tvcov$tvcov),
 			fit=as.integer(1),
-			pred=double(length(response$response$y)),
-			rpred=double(length(response$response$y)),
+			pred=double(length(resp$response$y)),
+			rpred=double(length(resp$response$y)),
 			renewal=as.integer(renewal),
 			rf=as.integer(rf),
 			bb=as.double(b),
@@ -437,12 +467,12 @@ else {
 		if(sf)v <- sh1(p[nps1:np])
 		z <- .C("ksurvg",
 			p=as.double(p),
-			y=as.double(response$response$y),
-			x=as.double(response$ccov$ccov),
-			cens=as.integer(response$response$censor),
+			y=as.double(resp$response$y),
+			x=as.double(resp$ccov$ccov),
+			cens=as.integer(resp$response$censor),
 			nind=as.integer(nind),
-			nobs=as.integer(response$response$nobs),
-			nbs=as.integer(length(response$response$y)),
+			nobs=as.integer(resp$response$nobs),
+			nbs=as.integer(length(resp$response$y)),
 			nccov=as.integer(nccov),
 			model=as.integer(mdl),
 			distribution=as.integer(dst),
@@ -450,10 +480,10 @@ else {
 			dep=as.integer(dep),
 			birth=as.integer(birth),
 			tvc=as.integer(tvc),
-			tvcov=as.double(response$tvcov$tvcov),
+			tvcov=as.double(resp$tvcov$tvcov),
 			fit=as.integer(1),
-			pred=double(length(response$response$y)),
-			rpred=double(length(response$response$y)),
+			pred=double(length(resp$response$y)),
+			rpred=double(length(resp$response$y)),
 			renewal=as.integer(renewal),
 			rf=as.integer(rf),
 			bb=as.double(b),
@@ -464,7 +494,7 @@ else {
 	if(mdl>4){
 		z$pred <- exp(z$pred)
 		z$rpred <- exp(z$rpred)}
-	for(i in 1:length(response$response$y))if(response$response$y[i]==0){
+	for(i in 1:length(resp$response$y))if(resp$response$y[i]==0){
 		z$pred[i] <- z$pred[i-1]
 		z$rpred[i] <- z$rpred[i-1]}}
 if(!is.null(mu3))mu1 <- mu3
@@ -482,14 +512,14 @@ z <- list(
 	update=update,
 	birth=birth,
 	renewal=renewal,
-	response=response$response,
+	response=resp$response,
 	pred=z$pred,
 	rpred=z$rpred,
-	ccov=response$ccov,
-	tvcov=response$tvcov,
+	ccov=resp$ccov,
+	tvcov=resp$tvcov,
 	maxlike=like,
 	aic=like+np,
-	df=length(response$response$y)-np,
+	df=length(resp$response$y)-np,
 	npt=np,
 	npv=npreg,
 	coefficients=p,
@@ -596,37 +626,3 @@ print.kalsurv <- function(z, digits = max(3, .Options$digits - 3)) {
 		print.default(coef.table, digits=digits, print.gap=2)}
 	cat("\nCorrelation matrix\n")
 	print.default(z$corr, digits=digits)}
-
-plot.profile.kalsurv <- function(z, times=NULL, nind=1, mu=NULL, intensity=F,
-	add=F, ylim=NULL, lty=NULL, ylab=NULL, xlab="Chronological time", ...){
-	for(i in 1:length(z$response$y))if(z$response$y[i]==0)
-		z$response$y[i] <- z$response$y[i-1]
-	if(intensity){
-		z$pred <- 1/z$pred
-		if(is.null(ylab))ylab <- "Mean intensity"}
-	else if(is.null(ylab))ylab <- "Time between events"
-	plot.profile.default(z, times=times, nind=nind, mu=mu, add=add,
-		ylim=ylim, lty=lty, ylab=ylab, xlab=xlab, ...)}
-
-plot.iprofile.kalsurv <- function(z, nind=1, obs=T, add=F, intensity=F,
-	plotsd=T, lty=NULL, pch=NULL, ylab=NULL, xlab="Chronological time",
-	main=NULL, ylim=NULL, ...){
-	for(i in 1:length(z$response$y))if(z$response$y[i]==0)
-		z$response$y[i] <- z$response$y[i-1]
-	if(intensity){
-		z$rpred <- 1/z$rpred
-		z$response$y <- 1/z$response$y
-		if(is.null(ylab))ylab <- "Mean intensity"}
-	else if(is.null(ylab))ylab <- "Time between events"
-	plot.iprofile.default(z, nind=nind, obs=obs, add=add, plotsd=plotsd,
-		lty=lty, pch=pch, ylab=ylab, xlab=xlab, main=main,
-		ylim=ylim, ...)}
-
-plot.residuals.kalsurv <- function(z, x=NULL, subset=NULL, ccov=NULL,
-	nind=NULL, recursive=T, pch=20, ylab="Residual",
-	xlab=NULL, main=NULL, ...){
-	for(i in 1:length(z$response$y))if(z$response$y[i]==0)
-		z$response$y[i] <- z$response$y[i-1]
-	plot.residuals.default(z, x=x, subset=subset, ccov=ccov,
-		nind=nind, recursive=recursive, pch=pch, ylab=ylab,
-		xlab=xlab, main=main, ...)}

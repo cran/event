@@ -25,6 +25,10 @@ is a formula with unknown parameters, their estimates must be supplied
 either in their order of appearance in the expression or in a named list.}
 \item{delta}{If any time intervals are different from unity, a vector
 of time intervals.}
+\item{envir}{Environment in which model formulae are to be
+interpreted or a data object of class, repeated, tccov, or tvcov.
+If \code{point} has class \code{repeated}, it is used as the
+environment.}
 \item{others}{Arguments controlling \code{\link{nlm}}.}
 }
 \description{
@@ -89,4 +93,7 @@ ehr(py, lambda=lambda4, plambda=c(1,1,1))
 # or
 ehr(py, lambda=~hgamma(ptime, b1, exp(c0+c1*zcov)),
 	plambda=list(c0=1,c1=1,b1=1))
+# or
+lambda5 <- function(p, linear) hgamma(ptime, p[1], exp(linear))
+ehr(py, lambda=lambda5, linear=~zcov, plambda=c(1,1,1))
 }

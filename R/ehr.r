@@ -124,31 +124,40 @@ if(dt){
 if(inherits(lambda,"formula"))lin <- lambda
 else if(inherits(linear,"formula"))lin <- linear
 else lin <- NULL
-lin1a <- lambda3 <- name <- NULL
-if(inherits(envir,"repeated")||inherits(envir,"tccov")){
-	type <- if(inherits(envir,"repeated"))"repeated"
+respenv <- inherits(point,"repeated")
+envname <- if(respenv)paste(deparse(substitute(point)))
+	else NULL
+lin1a <- lambda3 <- NULL
+if(respenv||inherits(envir,"repeated")||inherits(envir,"tccov")){
+	type <- if(respenv||inherits(envir,"repeated"))"repeated"
 		else if(inherits(envir,"tccov"))"tccov"
 		else "tvcov"
-	name <- paste(deparse(substitute(envir)))
+	if(is.null(envname))envname <- paste(deparse(substitute(envir)))
 	if(inherits(lin,"formula")){
 		lin1a <- finterp(lin)
 		class(lin) <- c(class(lin),type)}
 	if(is.function(lambda)){
-		lambda3 <- lambda
-		attributes(lambda3) <- attributes(fnenvir(lambda))
+		tmp <- parse(text=paste(deparse(lambda))[-1])
 		class(lambda) <- type
-		lambda <- fnenvir(lambda,envir=envir,name=name)}}
+		lambda <- if(respenv)fnenvir(lambda,envir=point,name=envname)
+			else fnenvir(lambda,envir=envir,name=envname)
+		lambda3 <- lambda
+		if(respenv)attr(lambda3,"model") <- tmp}}
 npl <- length(plambda)
 if(!is.null(lin)){
-	lambda2 <- finterp(lin,envir=envir,name=name)
+	lambda2 <- if(respenv)finterp(lin,envir=point,name=envname)
+		else finterp(lin,envir=envir,name=envname)
 	npt1 <- length(attr(lambda2,"parameters"))
 	if(is.matrix(attr(lambda2,"model"))){
+		if(is.function(lambda))
+			lf <- length(attr(if(respenv)fnenvir(lambda,envir=point)
+			else fnenvir(lambda,envir=envir),"parameters"))
 		if(all(dim(attr(lambda2,"model"))==1)){
 			if(is.function(lambda)){
 				lin1a <- lambda2
 				lambda1 <- if(dt)
-					function(p) lambda(p,p[1]*rep(1,n))+delta
-				else function(p) lambda(p,p[1]*rep(1,n))}
+					function(p) lambda(p,p[lf]*rep(1,n))+delta
+				else function(p) lambda(p,p[lf]*rep(1,n))}
 			else {
 				lambda1 <- function(p) p[1]*rep(1,n)
 				attributes(lambda1) <- attributes(lambda2)}}
@@ -158,9 +167,8 @@ if(!is.null(lin)){
 				dm1 <- attr(lambda2,"model")
 				lin1a <- lambda2
 				lambda1 <- if(dt)function(p)
-					function(p) lambda(p,dm1%*%p[1:npt1])+delta
-				else function(p) lambda(p,dm1%*%p[1:npt1])
-				attributes(lambda1) <- attributes(fnenvir(function(p) lambda(p,dm1%*%p[1:npt1])))}
+					lambda(p,dm1%*%p[lf:(lf+npt1-1)])+delta
+				else function(p) lambda(p,dm1%*%p[lf:(lf+npt1-1)])}
 			else {
 				if(dt){
 					dm1 <- attr(lambda2,"model")
@@ -182,22 +190,24 @@ if(!is.null(lin)){
 				o <- match(attr(lambda2,"parameters"),names(plambda))
 				plambda <- unlist(plambda)[o]
 				if(sum(!is.na(o))!=length(plambda))stop("invalid estimates for lambda - probably wrong names")}
-			else plambda <- unlist(plambda)}}
-	if(npl<npt1)stop("Not enough initial estimates for lambda")}
+			else plambda <- unlist(plambda)}}}
 else if(!is.function(lambda)){
 	lambda1 <- if(dt)function(p) p[1]*rep(1,n)+delta
 		else function(p) p[1]*rep(1,n)
 	npt1 <- 1}
 else {
 	if(dt){
-		lambda3 <- fnenvir(lambda)
+		lambda3 <- if(respenv)fnenvir(lambda,envir=point)
+			else fnenvir(lambda,envir=envir)
 		lambda1 <- function(p) lambda(p)+delta}
 	else lambda1 <- lambda}
 if(is.null(attributes(lambda1))){
 	attributes(lambda1) <- if(is.function(lambda)){
-		if(!inherits(lambda,"formulafn"))attributes(fnenvir(lambda))
+		if(!inherits(lambda,"formulafn"))attributes(if(respenv)fnenvir(lambda,envir=point)
+			else fnenvir(lambda,envir=envir))
 		else attributes(lambda)}
-		else attributes(fnenvir(lambda1))}
+		else attributes(if(respenv)fnenvir(lambda1,envir=point)
+			else fnenvir(lambda1,envir=envir))}
 nlp <- if(is.function(lambda)){
 		if(is.null(lin))length(attr(lambda1,"parameters"))
 		else length(attr(lambda1,"parameters"))-1+npt1}
@@ -265,7 +275,7 @@ print.intensity <- function(z) {
 		attr(z$intensity,"parameters")[grep("\\[",attr(z$intensity,"parameters"))]
 		else attr(z$intensity,"parameters")
 	if(!is.null(z$linear)&&!is.null(attr(z$linear,"parameters")))
-		cname <- c(colnames(attr(z$linear,"model")),cname)
+		cname <- c(cname,colnames(attr(z$linear,"model")))
 	coef.table <- cbind(z$coefficients, z$se)
 	dimnames(coef.table) <- list(cname, c("estimate", "se"))
 	print.default(coef.table, digits=4, print.gap=2)

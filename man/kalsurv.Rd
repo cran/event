@@ -12,17 +12,11 @@ kalsurv(response, intensity="exponential", distribution="Pareto",
 	ndigit=10, gradtol=0.00001, steptol=0.00001, iterlim=100,
 	fscale=1, typsiz=abs(p), stepmax=10*sqrt(p\%*\%p))
 }
-\alias{kalsurv}
-\alias{coefficients.kalsurv}
-\alias{deviance.kalsurv}
-\alias{fitted.kalsurv}
-\alias{residuals.kalsurv}
-\alias{print.kalsurv}
 \arguments{
 \item{response}{A list of vectors with times between events for
 each individual, one matrix or dataframe of such times if all
 individuals have the same number of events, or an object of class,
-response (created by \code{\link{restovec}}).}
+\code{response} (created by \code{\link{restovec}}).}
 \item{intensity}{The form of intensity function to be put in the
 distribution given by dist. Choices are exponential, Weibull, gamma,
 log normal, log logistic, log Cauchy, log Student, and gen(eralized)
@@ -55,7 +49,7 @@ containing a binary indicator, with a one indicating that the last
 time period in the series terminated with an event and zero that it
 was censored. For independence and frailty models, where response is
 matrix, censor may also be a matrix of the same size. Ignored if
-response has class, response or repeated.}
+response has class, \code{response} or \code{repeated}.}
 \item{delta}{Scalar or vector giving the unit of measurement for each
 response value, set to unity by default. For example, if a response is
 measured to two decimals, delta=0.01. If the response has been
@@ -63,16 +57,20 @@ pretransformed, this must be multiplied by the Jacobian. This
 transformation cannot contain unknown parameters. For example, with a
 log transformation, \code{delta=1/y}. (The delta values for the
 censored response are ignored.) Ignored if response has class,
-response or repeated.}
+\code{response} or \code{repeated}.}
 \item{ccov}{A vector or matrix containing time-constant baseline
 covariates with one entry per individual, a model formula using
-vectors of the same size, or an object of class, tccov (created by
-\code{\link{tcctomat}}). Ignored if response has class, repeated.}
+vectors of the same size, or an object of class, \code{tccov} (created
+by \code{\link{tcctomat}}). If response has class, \code{repeated},
+the covariates must be supplied as a Wilkinson and Rogers formula
+unless none are to be used or \code{mu} is given.}
 \item{tvcov}{A list of matrices with time-varying covariate values,
 observed at the event times in \code{response}, for each individual
 (one column per variable), one matrix or dataframe of such covariate
-values, or an object of class, tvcov (created by
-\code{\link{tvctomat}}). Ignored if response has class, repeated.}
+values, or an object of class, \code{tvcov} (created by
+\code{\link{tvctomat}}). If response has class, \code{repeated}, the
+covariates must be supplied as a Wilkinson and Rogers formula unless
+none are to be used or \code{mu} is given.}
 \item{preg}{Initial parameter estimates for the regression model:
 intercept plus one for each covariate in \code{ccov}. If a location
 function (mu) is supplied that contains time-varying covariates, all
@@ -96,7 +94,10 @@ frailty dependence, this is the frailty parameter.)}
 \item{pdepend}{An initial estimate for the serial dependence
 parameter.}
 \item{envir}{Environment in which model formulae are to be
-interpreted.}
+interpreted or a data object of class, \code{repeated}, \code{tccov},
+or \code{tvcov}.
+If \code{response} has class \code{repeated}, it is used as the
+environment.}
 \item{others}{Arguments controlling \code{\link{nlm}}.}
 }
 \description{
@@ -113,7 +114,7 @@ parameters are unknowns. Factor variables cannot be used and
 parameters must be scalars. (See \code{\link{finterp}}.)
 
 Marginal and individual profiles can be plotted using
-\code{\link{plot.profile}} and \code{\link{plot.iprofile}} and
+\code{\link{profile}} and \code{\link{iprofile}} and
 residuals with \code{\link{plot.residuals}}.
 }
 \value{
@@ -121,11 +122,12 @@ A list of classes \code{kalsurv} and \code{recursive} is returned.
 }
 \author{J.K. Lindsey}
 \seealso{
-\code{\link{contkal}}, \code{\link{coxre}}, \code{\link{finterp}},
-\code{\link{gettvc}}, \code{\link{gnlmm}}, \code{\link{gnlr}},
+\code{\link{coxre}}, \code{\link{finterp}}, \code{\link{gettvc}},
+\code{\link{gnlmm}}, \code{\link{gnlr}}, \code{\link{iprofile}},
 \code{\link{kalcount}}, \code{\link{kalseries}}, \code{\link{nbkal}},
-\code{\link{read.list}}, \code{\link{restovec}}, \code{\link{rmna}},
-\code{\link{tcctomat}}, \code{\link{tvctomat}}.
+\code{\link{profile}}, \code{\link{read.list}},
+\code{\link{restovec}}, \code{\link{rmna}}, \code{\link{tcctomat}},
+\code{\link{tvctomat}}.
 }
 \examples{
 treat <- c(0,0,1,1)
