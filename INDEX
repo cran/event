@@ -1,3 +1,4 @@
+autointensity	Plot Autointensity Function of a Point Process
 bp		Create a Vector of Cumulative Numbers of Previous Events for a Point Process
 coxre		Cox Proportional Hazards Model with Random Effect
 cprocess	Counting Process Plot
@@ -18,6 +19,7 @@ hlnorm		Log Hazard Function for a Log Normal Process
 hlogis		Log Hazard Function for a Logistic Process
 hnorm		Log Hazard Function for a Normal Process
 hpareto		Log Hazard Function for a Pareto Process
+hskewlaplace	Log Hazard Function for a Skew Laplace Process
 hstudent	Log Hazard Function for a Student Process
 hweibull	Log Hazard Function for a Weibull Process
 ident		Create an Individual Identification Vector for a Point Process

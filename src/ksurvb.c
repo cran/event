@@ -1,6 +1,6 @@
 /*
  *  event : A Library of Special Functions for Event Histories
- *  Copyright (C) 1998 J.K. Lindsey
+ *  Copyright (C) 1998, 1999, 2000, 2001 J.K. Lindsey
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,15 +19,15 @@
  *  SYNOPSIS
  *
  * void ksurvb(double p[],double y[],double x[],int cens[],int *nind,
- *	    int nobs[],int *nbs,int *nccov,int *model,int *density,int *dep,
- *	    int *birth,int *tvc,double tvcov[],int *fit,double pred[],
- *	    double rpred[],int *renewal,int *rf,double bb[],int *sf,
- *	    double vv[],double *like)
+ *	    int nobs[],int *nbs,int *nccov,int *model,int *density,
+ *          int *pfamily,int *dep,int *birth,int *tvc,double tvcov[],
+ *          int *fit,double pred[],double rpred[],int *renewal,int *rf,
+ *          double bb[],int *sf,double vv[],double *like)
  * void frailb(double p[],double y[],double x[],int cens[],int *nind,
  *	    int nobs[],int *nbs,int *nccov,int *model,int *density,int *dep,
  *	    int *birth,int *tvc,double tvcov[],int *fit,double pred[],
  *	    double rpred[],int *rf,double bb[],int *sf,double vv[],
- *	    double *like)
+ *	    int *frser,double *like)
  *
  *  DESCRIPTION
  *
@@ -39,45 +39,29 @@
 
 #include <math.h>
 #include <stddef.h>
+#include "R.h"
+#include "Rmath.h"
 
-extern double lgamma(double x);
-extern double dexp(double x, double scale);
-extern double pexp(double x, double scale);
-extern double qexp(double x, double scale);
-extern double dweibull(double x, double shape, double scale);
-extern double pweibull(double x, double shape, double scale);
-extern double qweibull(double x, double shape, double scale);
-extern double dgamma(double x, double shape, double scale);
-extern double pgamma(double x, double shape, double scale);
-extern double qgamma(double p, double shape, double scale);
-extern double dnorm(double x, double mean, double sd);
-extern double pnorm(double x, double mean, double sd);
-extern double qnorm(double p, double mu, double sigma);
-extern double dlogis(double x, double location, double scale);
-extern double plogis(double x, double location, double scale);
-extern double qlogis(double x, double location, double scale);
-extern double dcauchy(double x, double location, double scale);
-extern double pcauchy(double x, double location, double scale);
-extern double qcauchy(double x, double location, double scale);
-extern double ihgamma(double x, double shape, double scale);
-extern double ihlogis(double x, double location, double scale);
-
-void ksurvb(double p[],double y[],double x[],int cens[],int *nind,int nobs[],
-	    int *nbs,int *nccov,int *model,int *density,int *dep,int *birth,
-	    int *tvc,double tvcov[],int *fit,double pred[],double rpred[],
-	    int *renewal,int *rf,double bb[],int *sf,
-	    double vv[],double *like){
+void ksurvb(double p[],double y[],double x[],int cens[],int *nind,
+	    int nobs[],int *nbs,int *nccov,int *model,int *density,
+	    int *pfamily,int *dep,int *birth,int *tvc,double tvcov[],int *fit,
+	    double pred[],double rpred[],int *renewal,int *rf,double bb[],
+	    int *sf,double vv[],double *like){
   int i,j,k,nm,c;
-  double a,a1,b,b1,delta,lambda,omega,om,beta,bt,h,yy,kk,tmp,ly,plap,intercept;
+  double a,a1,b,b1,delta,lambda,omega,om,beta,bt,h,yy,tmp,ly,plap,intercept,
+    family;
   
   *like=0;
   nm=0;
   delta=exp(-p[*nccov+*birth+*tvc+1]);
-  if(*dep>0)omega=exp(p[*nccov+*birth+*tvc+2])/(1+exp(p[*nccov+*birth+*tvc+2]));
+  if(*dep>0)
+    omega=exp(p[*nccov+*birth+*tvc+2])/(1+exp(p[*nccov+*birth+*tvc+2]));
+  if(*pfamily)family=p[*nccov+*birth+*tvc+2+(*dep>0)];
+  if(*model==4)intercept=exp(p[*nccov+*birth+*tvc+2+(*dep>0)+*pfamily]);;
   if(*model>1&&!*sf){
-    if(*model<5)lambda=exp(p[*nccov+*birth+*tvc+2+(*dep>0)]);
-    else lambda=exp(p[*nccov+*birth+*tvc+2+(*dep>0)]/2);}
-  if(*model==4)intercept=exp(p[*nccov+*birth+*tvc+3+(*dep>0)]);
+    if(*model<5)
+      lambda=exp(p[*nccov+*birth+*tvc+2+(*dep>0)+*pfamily+(*model==4)]);
+    else lambda=exp(p[*nccov+*birth+*tvc+2+(*dep>0)+*pfamily+(*model==4)]/2);}
   for(i=0;i<*nind;i++){
     a=b=delta;
     if(!*rf){
@@ -120,78 +104,83 @@ void ksurvb(double p[],double y[],double x[],int cens[],int *nind,int nobs[],
 	if(!*density){
 	  /* intensity models */
 	  switch(*model){
-	  case 1:
+	  case 1: /* exponential distribution */
 	    b1+=yy/bt;
-	    h=1/bt;
+	    h=-log(bt);
 	    break;
-	  case 2:
+	  case 2: /* Weibull distribution */
 	    b1+=pow(yy/bt,lambda);
-	    h=lambda*pow(yy/bt,lambda-1)/bt;
+	    h=log(lambda/bt)+(lambda-1)*log(yy/bt);
 	    break;
-	  case 3:
-	    b1+=ihgamma(yy,lambda,bt);
-	    h=dgamma(yy,lambda,bt)/(1-pgamma(yy,lambda,bt));
+	  case 3: /* gamma distribution */
+	    b1-=pgamma(yy,lambda,bt,0,1);
+	    h=dgamma(yy,lambda,bt,1)-pgamma(yy,lambda,bt,0,1);
 	    break;
-	  case 4:
+	  case 4: /* generalized logistic distribution */
 	    b1+=(yy+log(lambda+intercept*exp(-bt*yy))/bt)/lambda;
-	    h=1/(lambda+intercept*exp(-bt*yy));
+	    h=-log(lambda+intercept*exp(-bt*yy));
 	    break;
-	  case 5:
-	    b1-=log(1-pnorm(ly,bt,lambda));
-	    h=dnorm(ly,bt,lambda)/yy/(1-pnorm(ly,bt,lambda));
+	  case 5: /* log normal distribution */
+	    b1-=pnorm(ly,bt,lambda,0,1);
+	    h=dnorm(ly,bt,lambda,1)-ly-pnorm(ly,bt,lambda,0,1);
 	    break;
-	  case 6:
-	    b1+=ihlogis(ly,bt,lambda);
-	    h=dlogis(ly,bt,lambda)/yy/(1-plogis(ly,bt,lambda));
+	  case 6: /* log logistic distribution */
+	    b1-=plogis(ly,bt,lambda,0,1);
+	    h=dlogis(ly,bt,lambda,1)-ly-plogis(ly,bt,lambda,0,1);
 	    break;
-	  case 7:
-	    b1-=log(1-pcauchy(ly,bt,lambda));
-	    h=dcauchy(ly,bt,lambda)/yy/(1-pcauchy(ly,bt,lambda));
+	  case 7: /* log Cauchy distribution */
+	    b1-=pcauchy(ly,bt,lambda,0,1);
+	    h=dcauchy(ly,bt,lambda,1)-ly-pcauchy(ly,bt,lambda,0,1);
 	    break;
-	  case 8:
+	  case 8: /* log Laplace distribution */
 	    tmp=exp(-fabs(ly-bt)/lambda)/2;
 	    plap=ly<bt?tmp:1-tmp;
 	    b1-=log(1-plap);
-	    h=tmp/(lambda*yy*(1-plap));
+	    h=log(tmp)-log(lambda*yy*(1-plap));
 	    break;}}
 	else{
 	  /* density models */
 	  switch(*model){
-	  case 1:
-	    b1+=pexp(yy,bt);
-	    h=dexp(yy,bt);
+	  case 1: /* exponential distribution */
+	    b1+=pexp(yy,bt,1,0);
+	    h=dexp(yy,bt,1);
 	    break;
-	  case 2:
-	    b1+=pweibull(yy,lambda,bt);
-	    h=dweibull(yy,lambda,bt);
+	  case 2: /* Weibull distribution */
+	    b1+=pweibull(yy,lambda,bt,1,0);
+	    h=dweibull(yy,lambda,bt,1);
 	    break;
-	  case 3:
-	    b1+=pgamma(yy,lambda,bt);
-	    h=dgamma(yy,lambda,bt);
+	  case 3: /* gamma distribution */
+	    b1+=pgamma(yy,lambda,bt,1,0);
+	    h=dgamma(yy,lambda,bt,1);
 	    break;
-	  case 4:
+	  case 4: /* generalized logistic distribution */
 	    b1+=exp(-yy/lambda)*pow((lambda+intercept)/(lambda+intercept*exp(-bt*yy)),1/(lambda*bt));
-	    h=exp(-yy/lambda)*pow((lambda+intercept)/(lambda+intercept*exp(-bt*yy)),1/(lambda*bt)+1);
+	    h=-yy/lambda+(1/(lambda*bt)+1)*log((lambda+intercept)/(lambda+intercept*exp(-bt*yy)));
 	    break;
-	  case 5:
-	    b1+=pnorm(ly,bt,lambda);
-	    h=dnorm(ly,bt,lambda)/yy;
+	  case 5: /* log normal distribution */
+	    b1+=pnorm(ly,bt,lambda,1,0);
+	    h=dnorm(ly,bt,lambda,1)-ly;
 	    break;
-	  case 6:
-	    b1+=plogis(ly,bt,lambda);
-	    h=dlogis(ly,bt,lambda)/yy;
+	  case 6: /* log logistic distribution */
+	    b1+=plogis(ly,bt,lambda,1,0);
+	    h=dlogis(ly,bt,lambda,1)-ly;
 	    break;
-	  case 7:
-	    b1+=pcauchy(ly,bt,lambda);
-	    h=dcauchy(ly,bt,lambda)/yy;
+	  case 7: /* log Cauchy distribution */
+	    b1+=pcauchy(ly,bt,lambda,1,0);
+	    h=dcauchy(ly,bt,lambda,1)-ly;
 	    break;
-	  case 8:
+	  case 8: /* log Laplace distribution */
 	    tmp=exp(-fabs(ly-bt)/lambda)/2;
 	    b1+=ly<bt?tmp:1-tmp;
-	    h=tmp/lambda/yy;
+	    h=log(tmp/lambda/yy);
 	    break;}}
 	/* calculate likelihood */
-	*like-=(c>1?lgamma(a1)-lgamma(a)-lgamma(c+1):c*log(a))+a*log(b)-a1*log(b1)+c*log(h);
+	*like-=(c>1?lgammafn(a1)-lgammafn(a)-lgammafn(c+1):c*log(a))+c*h;
+	/* is this correct for c>1? - gives gamma when family -> 0 */
+	/* c*(family-1)*log(b1) does not work */
+	if(*pfamily)*like-=(c>0)*(family-c)*log(b1)-a*(pow(b1,family)-pow(b,family))/family;
+	else *like-=a*log(b)-a1*log(b1);
+	/* calculate fitted values */
 	if(*fit){
 	  pred[nm-c+cens[nm]]=bt;
 	  tmp=b/a;
@@ -199,19 +188,19 @@ void ksurvb(double p[],double y[],double x[],int cens[],int *nind,int nobs[],
 	    switch(*model){
 	    case 1: rpred[nm-c+cens[nm]]=bt*tmp; break;
 	    case 2: rpred[nm-c+cens[nm]]=bt*pow(tmp,1/lambda); break;
-	    case 3: rpred[nm-c+cens[nm]]=qgamma(1-exp(-tmp),lambda,bt); break;
-	    case 5: rpred[nm-c+cens[nm]]=exp(qnorm(1-exp(-tmp),bt,lambda)); break;
-	    case 6: rpred[nm-c+cens[nm]]=exp(qlogis(1-exp(-tmp),bt,lambda)); break;
-	    case 7: rpred[nm-c+cens[nm]]=exp(qcauchy(1-exp(-tmp),bt,lambda)); break;
+	    case 3: rpred[nm-c+cens[nm]]=qgamma(1-exp(-tmp),lambda,bt,1,0); break;
+	    case 5: rpred[nm-c+cens[nm]]=exp(qnorm(1-exp(-tmp),bt,lambda,1,0)); break;
+	    case 6: rpred[nm-c+cens[nm]]=exp(qlogis(1-exp(-tmp),bt,lambda,1,0)); break;
+	    case 7: rpred[nm-c+cens[nm]]=exp(qcauchy(1-exp(-tmp),bt,lambda,1,0)); break;
 	    case 8: rpred[nm-c+cens[nm]]=exp(bt+lambda*log(2*(ly<bt?exp(-tmp):1-exp(-tmp)))); break;}}
 	  else{
 	    switch(*model){
-	    case 1: rpred[nm-c+cens[nm]]=qexp(tmp,bt); break;
-	    case 2: rpred[nm-c+cens[nm]]=qweibull(tmp,lambda,bt); break;
-	    case 3: rpred[nm-c+cens[nm]]=qgamma(tmp,lambda,bt); break;
-	    case 5: rpred[nm-c+cens[nm]]=exp(qnorm(tmp,bt,lambda)); break;
-	    case 6: rpred[nm-c+cens[nm]]=exp(qlogis(tmp,bt,lambda)); break;
-	    case 7: rpred[nm-c+cens[nm]]=exp(qcauchy(tmp,bt,lambda)); break;
+	    case 1: rpred[nm-c+cens[nm]]=qexp(tmp,bt,1,0); break;
+	    case 2: rpred[nm-c+cens[nm]]=qweibull(tmp,lambda,bt,1,0); break;
+	    case 3: rpred[nm-c+cens[nm]]=qgamma(tmp,lambda,bt,1,0); break;
+	    case 5: rpred[nm-c+cens[nm]]=exp(qnorm(tmp,bt,lambda,1,0)); break;
+	    case 6: rpred[nm-c+cens[nm]]=exp(qlogis(tmp,bt,lambda,1,0)); break;
+	    case 7: rpred[nm-c+cens[nm]]=exp(qcauchy(tmp,bt,lambda,1,0)); break;
 	    case 8: rpred[nm-c+cens[nm]]=exp(bt+lambda*log(2*(ly<bt?tmp:1-tmp))); break;}}}
 	      /* update parameters */
         switch(*dep){
@@ -222,7 +211,7 @@ void ksurvb(double p[],double y[],double x[],int cens[],int *nind,int nobs[],
 	case 5: a=a1; break;
 	case 6:
 	case 7: a=omega*a1; break;
-	default:}
+	default: break;}
 	switch(*dep){
 	case 1: b=om*(b1-b)+delta; break;
 	case 2: b=om*b1+(1-om)*delta; break;
@@ -230,7 +219,7 @@ void ksurvb(double p[],double y[],double x[],int cens[],int *nind,int nobs[],
 	case 4: b=omega*b1+(1-omega)*delta; break;
 	case 5:
 	case 7: b=omega*b1; break;
-	default:}
+	default: break;}
       c=0;}
       nm++;}}
   return;}
@@ -238,18 +227,18 @@ void ksurvb(double p[],double y[],double x[],int cens[],int *nind,int nobs[],
 void frailb(double p[],double y[],double x[],int cens[],int *nind,int nobs[],
 	    int *nbs,int *nccov,int *model,int *density,int *dep,int *birth,
 	    int *tvc,double tvcov[],int *fit,double pred[],double rpred[],
-	    int *rf,double bb[],int *sf,double vv[],
+	    int *rf,double bb[],int *sf,double vv[],int *frser,
 	    double *like){
   int i,j,k,nm,ns,c,nn;
-  double b1,delta,lambda,beta,bt,l1,yy,kk,nb,ly,plap,tmp,intercept,H;
+  double b1,delta,lambda,beta,bt,l1,yy,nb,ly,plap,tmp,intercept,H,btp,res;
   
   *like=0;
   nm=0;
   delta=exp(p[*nccov+*birth+*tvc+1]);
   if(*model>1&&!*sf){
-    if(*model<5)lambda=exp(p[*nccov+*birth+*tvc+2]);
-    else lambda=exp(p[*nccov+*birth+*tvc+2]/2);}
-  if(*model==4)intercept=exp(p[*nccov+*birth+*tvc+3]);
+    if(*model<5)lambda=exp(p[*nccov+*birth+*tvc+*frser+2]);
+    else lambda=exp(p[*nccov+*birth+*tvc+*frser+2]/2);}
+  if(*model==4)intercept=exp(p[*nccov+*birth+*tvc+*frser+3]);
   for(nn=i=0;i<*nind;i++)nn+=nobs[i];
   for(i=0;i<*nind;i++){
     if(!*rf){
@@ -266,6 +255,7 @@ void frailb(double p[],double y[],double x[],int cens[],int *nind,int nobs[],
       nb=0;
       for(j=0;j<nobs[i];j++)nb+=y[nm+j];
       nb/=beta;}
+    res=0;
     for(c=0,j=0;j<nobs[i];j++){
       if(*model>1&&*sf)lambda=vv[nm];
       ns+=cens[nm];
@@ -287,39 +277,44 @@ void frailb(double p[],double y[],double x[],int cens[],int *nind,int nobs[],
 	    if(*model<4)bt*=pow(j+1.,p[*nccov+1]);
 	    else bt+=p[*nccov+1]*log(j+1);}}
 	else if(*tvc)bt=bb[nm];
+	/* if AR, add discounted previous residual */
+	btp=bt;
+	if(*frser&&j>0){
+	  if(*model<4)
+	    bt=exp(log(bt)+exp(p[*nccov+*birth+*tvc+2]*y[nm])*res);
+	  else bt+=exp(p[*nccov+*birth+*tvc+2]*y[nm])*res;}
 	if(!*density){
 	  /* intensity models */
 	  switch(*model){
-	  case 1:
+	  case 1: /* exponential distribution */
 	    H=yy/bt;
 	    l1+=-log(bt);
 	    break;
-	  case 2:
+	  case 2: /* Weibull distribution */
 	    H=pow(yy/bt,lambda);
 	    l1+=log(lambda/bt)+(lambda-1)*log(yy/bt);
 	    break;
-	  case 3:
-	    H=ihgamma(yy,lambda,bt);
-	    /*b1-=log(1-pgamma(yy,lambda,bt));*/
-	    l1+=log(dgamma(yy,lambda,bt)/(1-pgamma(yy,lambda,bt)));
+	  case 3: /* gamma distribution */
+	    H=-pgamma(yy,lambda,bt,0,1);
+	    l1+=dgamma(yy,lambda,bt,1)-pgamma(yy,lambda,bt,0,1);
 	    break;
-	  case 4:
+	  case 4: /* generalized logistic distribution */
 	    H=(yy+log(lambda+intercept*exp(-bt*yy))/bt)/lambda;
 	    l1+=-log(lambda+intercept*exp(-bt*yy));
 	    break;
-	  case 5:
-	    H=-log(1-pnorm(ly,bt,lambda));
-	    l1+=log(dnorm(ly,bt,lambda)/yy/(1-pnorm(ly,bt,lambda)));
+	  case 5: /* log normal distribution */
+	    H=-pnorm(ly,bt,lambda,0,1);
+	    l1+=dnorm(ly,bt,lambda,1)-ly-pnorm(ly,bt,lambda,0,1);
 	    break;
-	  case 6:
-	    H=ihlogis(ly,bt,lambda);
-	    l1+=log(dlogis(ly,bt,lambda)/yy/(1-plogis(ly,bt,lambda)));
+	  case 6: /* log logistic distribution */
+	    H=-plogis(ly,bt,lambda,0,1);
+	    l1+=dlogis(ly,bt,lambda,1)/-ly-plogis(ly,bt,lambda,0,1);
 	    break;
-	  case 7:
-	    H=-log(1-pcauchy(ly,bt,lambda));
-	    l1+=log(dcauchy(ly,bt,lambda)/yy/(1-pcauchy(ly,bt,lambda)));
+	  case 7: /* log Cauchy distribution */
+	    H=-pcauchy(ly,bt,lambda,0,1);
+	    l1+=dcauchy(ly,bt,lambda,1)-ly-pcauchy(ly,bt,lambda,0,1);
 	    break;
-	  case 8:
+	  case 8: /* log Laplace distribution */
 	    tmp=exp(-fabs(ly-bt)/lambda)/2;
 	    plap=ly<bt?tmp:1-tmp;
 	    H=-log(1-plap);
@@ -328,63 +323,70 @@ void frailb(double p[],double y[],double x[],int cens[],int *nind,int nobs[],
 	else{
 	  /* density models */
 	  switch(*model){
-	  case 1:
-	    H=pexp(yy,bt);
-	    l1+=log(dexp(yy,bt));
+	  case 1: /* exponential distribution */
+	    H=pexp(yy,bt,1,0);
+	    l1+=dexp(yy,bt,1);
 	    break;
-	  case 2:
-	    H=pweibull(yy,lambda,bt);
-	    l1+=log(dweibull(yy,lambda,bt));
+	  case 2: /* Weibull distribution */
+	    H=pweibull(yy,lambda,bt,1,0);
+	    l1+=dweibull(yy,lambda,bt,1);
 	    break;
-	  case 3:
-	    H=pgamma(yy,lambda,bt);
-	    l1+=log(dgamma(yy,lambda,bt));
+	  case 3: /* gamma distribution */
+	    H=pgamma(yy,lambda,bt,1,0);
+	    l1+=dgamma(yy,lambda,bt,1);
 	    break;
-	  case 4:
+	  case 4: /* generalized logistic distribution */
 	    H=exp(-yy/lambda)*pow((lambda+intercept)/(lambda+intercept*exp(-bt*yy)),1/(lambda*bt));
 	    l1+=-yy/lambda+log((lambda+intercept)/(lambda+intercept*exp(-bt*yy)))/((lambda*bt)+1);
 	    break;
-	  case 5:
-	    H=pnorm(ly,bt,lambda);
-	    l1+=log(dnorm(ly,bt,lambda)/yy);
+	  case 5: /* log normal distribution */
+	    H=pnorm(ly,bt,lambda,1,0);
+	    l1+=dnorm(ly,bt,lambda,1)-ly;
 	    break;
-	  case 6:
-	    H=plogis(ly,bt,lambda);
-	    l1+=log(dlogis(ly,bt,lambda)/yy);
+	  case 6: /* log logistic distribution */
+	    H=plogis(ly,bt,lambda,1,0);
+	    l1+=dlogis(ly,bt,lambda,1)-ly;
 	    break;
-	  case 7:
-	    H=pcauchy(ly,bt,lambda);
-	    l1+=log(dcauchy(ly,bt,lambda)/yy);
+	  case 7: /* log Cauchy distribution */
+	    H=pcauchy(ly,bt,lambda,1,0);
+	    l1+=dcauchy(ly,bt,lambda,1)-ly;
 	    break;
-	  case 8:
+	  case 8: /* log Laplace distribution */
 	    tmp=exp(-fabs(ly-bt)/lambda)/2;
 	    H=ly<bt?tmp:1-tmp;
 	    l1+=log(tmp/lambda/yy);
 	    break;}}
 	/* calculate likelihood */
 	*like-=c*l1;
-	if(c>1)*like+=lgamma(c+1);
+	if(c>1)*like+=lgammafn(c+1);
+	if(*frser)res=(*model>6?ly:yy)-btp;
 	if(*fit){
-	  pred[nm-c+cens[nm]]=bt;
+	  pred[nm-c+cens[nm]]=btp;
 	  tmp=(b1+nb/(nn*delta))/(nb/(nn*delta)+ns);
 	  if(!*density){
 	    switch(*model){
 	    case 1: rpred[nm-c+cens[nm]]=bt*tmp; break;
 	    case 2: rpred[nm-c+cens[nm]]=bt*pow(tmp,1/lambda); break;
-	    case 3: rpred[nm]=qgamma(1-exp(-tmp),lambda,bt); break;
-	    case 5: rpred[nm-c+cens[nm]]=exp(qnorm(1-exp(-tmp),bt,lambda)); break;
-	    case 6: rpred[nm-c+cens[nm]]=exp(qlogis(1-exp(-tmp),bt,lambda)); break;
-	    case 7: rpred[nm-c+cens[nm]]=exp(qcauchy(1-exp(-tmp),bt,lambda)); break;
-	    case 8: rpred[nm-c+cens[nm]]=exp(bt+lambda*log(2*(ly<bt?exp(-tmp):1-exp(-tmp)))); break;}}
+	    case 3: rpred[nm]=qgamma(1-exp(-tmp),lambda,bt,1,0); break;
+	    case 5: rpred[nm-c+cens[nm]]=exp(qnorm(1-exp(-tmp),bt,lambda,1,0));
+	      break;
+	    case 6: rpred[nm-c+cens[nm]]=exp(qlogis(1-exp(-tmp),bt,lambda,1,0));
+	      break;
+	    case 7: rpred[nm-c+cens[nm]]=exp(qcauchy(1-exp(-tmp),bt,lambda,1,0));
+	      break;
+	    case 8: rpred[nm-c+cens[nm]]=exp(bt+lambda*log(2*(ly<bt?exp(-tmp):1-exp(-tmp))));
+	      break;}}
 	  else{
 	    switch(*model){
-	    case 1: rpred[nm-c+cens[nm]]=qexp(tmp,bt); break;
-	    case 2: rpred[nm-c+cens[nm]]=qweibull(tmp,lambda,bt); break;
-	    case 3: rpred[nm-c+cens[nm]]=qgamma(tmp,lambda,bt); break;
-	    case 5: rpred[nm-c+cens[nm]]=exp(qnorm(tmp,bt,lambda)); break;
-	    case 6: rpred[nm-c+cens[nm]]=exp(qlogis(tmp,bt,lambda)); break;
-	    case 7: rpred[nm-c+cens[nm]]=exp(qcauchy(tmp,bt,lambda)); break;
-	    case 8: rpred[nm-c+cens[nm]]=exp(bt+lambda*log(2*(ly<bt?tmp:1-tmp))); break;}}}
+	    case 1: rpred[nm-c+cens[nm]]=qexp(tmp,bt,1,0); break;
+	    case 2: rpred[nm-c+cens[nm]]=qweibull(tmp,lambda,bt,1,0); break;
+	    case 3: rpred[nm-c+cens[nm]]=qgamma(tmp,lambda,bt,1,0); break;
+	    case 5: rpred[nm-c+cens[nm]]=exp(qnorm(tmp,bt,lambda,1,0)); break;
+	    case 6: rpred[nm-c+cens[nm]]=exp(qlogis(tmp,bt,lambda,1,0)); break;
+	    case 7: rpred[nm-c+cens[nm]]=exp(qcauchy(tmp,bt,lambda,1,0));
+	      break;
+	    case 8: rpred[nm-c+cens[nm]]=exp(bt+lambda*log(2*(ly<bt?tmp:1-tmp)));
+	      break;}}}
 	b1+=H;
 	c=0;}
       nm++;}

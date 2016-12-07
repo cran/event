@@ -1,10 +1,14 @@
 \name{tvcov}
-\title{Create a Vector of Time-varying Covariates for
-a Point Process}
+\title{Create a Vector of Time-varying Covariates for a Point Process}
+\alias{tvcov}
 \usage{
 tvcov(y, x, tx)
 }
-\alias{tvcov}
+\description{
+\code{tvcov} creates a vector of length \code{sum(y)} of time-varying
+covariates for use with \code{\link[event]{ehr}}. It may also be used to create
+weight vectors.
+}
 \arguments{
 \item{y}{Vector of times.}
 \item{x}{Vector covariate.}
@@ -12,13 +16,15 @@ tvcov(y, x, tx)
 }
 \value{
 \code{tvcov} creates a vector of length \code{sum(y)} of time-varying
-covariates for use with \code{\link{ehr}}. It may also be used to create
+covariates for use with \code{\link[event]{ehr}}. It may also be used to create
 weight vectors.
 }
 \author{J.K. Lindsey}
 \seealso{
-\code{\link{bp}}, \code{\link{ehr}}, \code{\link{ident}}, \code{\link{pp}},
-\code{\link{tccov}}, \code{\link{tpast}}, \code{\link{ttime}}.
+\code{\link[event]{bp}}, \code{\link[event]{ehr}},
+\code{\link[event]{ident}}, \code{\link[event]{pp}},
+\code{\link[event]{tccov}}, \code{\link[event]{tpast}},
+\code{\link[event]{ttime}}.
 }
 \examples{
 y <- c(5,3,2,4)
@@ -27,3 +33,4 @@ tx <- c(2,3,1,2,2,2,2)
 zcov <- tvcov(y, x, tx)
 zcov
 }
+\keyword{manip}

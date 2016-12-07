@@ -1,15 +1,26 @@
 \name{ehr}
-\title{Fit an Intensity Function to Event Histories}
+\title{Regression Models for Event History Intensity Functions}
+\alias{ehr}
+\alias{print.intensity}
+\alias{deviance.intensity}
+\alias{vdm}
 \usage{
 ehr(point, lambda=NULL, linear=NULL, plambda=NULL, delta=1,
-	envir=sys.frame(sys.parent()), print.level=0,
-	typsiz=rep(1,length(p)), ndigit=10, gradtol=0.00001,
-	stepmax=max(10*sqrt(p\%*\%p),10), steptl=0.0004,
-	iterlim=100, fscale=1)
+	envir=parent.frame(), print.level=0, typsize=rep(1,length(plambda)),
+	ndigit=10, gradtol=0.00001, iterlim=100, fscale=1,
+	stepmax=max(10*sqrt(plambda\%*\%plambda),10), steptol=0.0004)
 }
-\alias{ehr}
+\description{
+\code{ehr} fits an intensity function to event histories, where point is
+produced by \code{point <- pp(y)} and \code{lambda} is the user-defined
+log intensity function.
+
+Nonlinear regression models for \code{lambda} can be supplied as
+formulae where parameters are unknowns. Factor variables cannot be
+used and parameters must be scalars. (See \code{\link[rmutil]{finterp}}.)
+}
 \arguments{
-\item{point}{A point process vector produced by \code{\link{pp}}.}
+\item{point}{A point process vector produced by \code{\link[event]{pp}}.}
 \item{lambda}{User-specified function of \code{p}, and possibly
 \code{linear}, giving the regression equation for the intensity or a
 formula beginning with ~, specifying either a linear regression
@@ -29,16 +40,14 @@ of time intervals.}
 interpreted or a data object of class, repeated, tccov, or tvcov.
 If \code{point} has class \code{repeated}, it is used as the
 environment.}
-\item{others}{Arguments controlling \code{\link{nlm}}.}
-}
-\description{
-\code{ehr} fits an intensity function to event histories, where point is
-produced by \code{point <- pp(y)} and \code{lambda} is the user-defined
-log intensity function.
-
-Nonlinear regression models for \code{lambda} can be supplied as
-formulae where parameters are unknowns. Factor variables cannot be
-used and parameters must be scalars. (See \code{\link{finterp}}.)
+\item{print.level}{\code{nlm} control options.}
+\item{ndigit}{\code{nlm} control options.}
+\item{gradtol}{\code{nlm} control options.}
+\item{steptol}{\code{nlm} control options.}
+\item{iterlim}{\code{nlm} control options.}
+\item{fscale}{\code{nlm} control options.}
+\item{typsize}{\code{nlm} control options.}
+\item{stepmax}{\code{nlm} control options.}
 }
 \references{
 Lindsey, J.K. (1995) Fitting parametric counting processes by
@@ -47,9 +56,10 @@ Society C44, 201-212.
 }
 \author{J.K. Lindsey}
 \seealso{
-\code{\link{bp}}, \code{\link{finterp}}, \code{\link{ident}},
-\code{\link{pp}}, \code{\link{tccov}}, \code{\link{tpast}},
-\code{\link{ttime}}, \code{\link{tvcov}}.
+\code{\link[event]{bp}}, \code{\link[rmutil]{finterp}},
+\code{\link[event]{ident}}, \code{\link[event]{pp}},
+\code{\link[event]{tccov}}, \code{\link[event]{tpast}},
+\code{\link[event]{ttime}}, \code{\link[event]{tvcov}}.
 }
 \examples{
 y <- c(5,3,2,4)
@@ -97,3 +107,4 @@ ehr(py, lambda=~hgamma(ptime, b1, exp(c0+c1*zcov)),
 lambda5 <- function(p, linear) hgamma(ptime, p[1], exp(linear))
 ehr(py, lambda=lambda5, linear=~zcov, plambda=c(1,1,1))
 }
+\keyword{models}

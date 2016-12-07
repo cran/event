@@ -1,13 +1,15 @@
 \name{hgamma}
-\title{Hazard Function for a Gamma Process}
-\usage{
-hgamma(y, s, m)
-}
+\title{Log Hazard Function for a Gamma Process}
 \alias{hgamma}
+\usage{
+hgamma(y, shape, rate=1, scale=1/rate)
+}
+\description{Log Hazard Function for a Gamma Process}
 \arguments{
 \item{y}{Vector of times.}
-\item{s}{Shape parameter.}
-\item{m}{Scale parameter.}
+\item{shape}{Shape parameter.}
+\item{rate}{Rate parameter.}
+\item{scale}{Scale parameter.}
 }
 \value{
 \code{hgamma} returns the log hazard function for a gamma process with
@@ -15,13 +17,16 @@ the given parameter values.
 }
 \author{J.K. Lindsey}
 \seealso{
-\code{\link{hboxcox}}, \code{\link{hburr}}, \code{\link{hexp}},
-\code{\link{hgextval}}, \code{\link{hcauchy}}, \code{\link{hggamma}},
-\code{\link{hhjorth}}, \code{\link{hinvgauss}}, \code{\link{hlaplace}},
-\code{\link{hlnorm}}, \code{\link{hlogis}}, \code{\link{hglogis}},
-\code{\link{hnorm}}, \code{\link{hstudent}}, \code{\link{hweibull}},
-\code{\link{hgweibull}}.
+\code{\link[event]{hboxcox}}, \code{\link[event]{hburr}},
+\code{\link[event]{hexp}}, \code{\link[event]{hgextval}},
+\code{\link[event]{hcauchy}}, \code{\link[event]{hggamma}},
+\code{\link[event]{hhjorth}}, \code{\link[event]{hinvgauss}},
+\code{\link[event]{hlaplace}}, \code{\link[event]{hlnorm}},
+\code{\link[event]{hlogis}}, \code{\link[event]{hglogis}},
+\code{\link[event]{hnorm}}, \code{\link[event]{hstudent}},
+\code{\link[event]{hweibull}}, \code{\link[event]{hgweibull}}.
 }
 \examples{
 hgamma(1:10, 3, 2)
 }
+\keyword{distribution}

@@ -1,9 +1,10 @@
 \name{hweibull}
-\title{Hazard Function for a Weibull Process}
+\title{Log Hazard Function for a Weibull Process}
+\alias{hweibull}
 \usage{
 hweibull(y, s, m)
 }
-\alias{hweibull}
+\description{Log Hazard Function for a Weibull Process}
 \arguments{
 \item{y}{Vector of times.}
 \item{s}{Shape parameter.}
@@ -15,13 +16,16 @@ process with the given parameter values.
 }
 \author{J.K. Lindsey}
 \seealso{
-\code{\link{hboxcox}}, \code{\link{hburr}}, \code{\link{hexp}},
-\code{\link{hgextval}}, \code{\link{hcauchy}}, \code{\link{hgamma}},
-\code{\link{hggamma}}, \code{\link{hhjorth}}, \code{\link{hinvgauss}},
-\code{\link{hlaplace}}, \code{\link{hlogis}}, \code{\link{hglogis}},
-\code{\link{hnorm}}, \code{\link{hnorm}}, \code{\link{hstudent}},
-\code{\link{hgweibull}}.
+\code{\link[event]{hboxcox}}, \code{\link[event]{hburr}},
+\code{\link[event]{hexp}}, \code{\link[event]{hgextval}},
+\code{\link[event]{hcauchy}}, \code{\link[event]{hgamma}},
+\code{\link[event]{hggamma}}, \code{\link[event]{hhjorth}},
+\code{\link[event]{hinvgauss}}, \code{\link[event]{hlaplace}},
+\code{\link[event]{hlogis}}, \code{\link[event]{hglogis}},
+\code{\link[event]{hlnorm}}, \code{\link[event]{hnorm}},
+\code{\link[event]{hstudent}}, \code{\link[event]{hgweibull}}.
 }
 \examples{
 hweibull(1:10, 1.5, 2)
 }
+\keyword{distribution}
