@@ -1,8 +1,8 @@
 ad4652e2dcfd4a0ecf91a2c01a7defd5 *COPYING
-ad07dba96bbf2739c954e65c2bf58308 *DESCRIPTION
+c794d3ce5f53a2138979a38f4de8e701 *DESCRIPTION
 63cb037a4a397097eefb7599d73b626d *INDEX
-f1de5a1c52aeacf465ff9dde3bcdc63d *NAMESPACE
-6c3b95fa4a7fe96bd0dbd50accf02d24 *NEWS.md
+9398ba064413a17a69d5121b0701183f *NAMESPACE
+1a638c6d08e1274b776be667b9dbbaad *NEWS.md
 7cc9826437127e7dc7b81c88fb69ce07 *R/autointensity.r
 993fe4bae4c6ab8e18ca22d9e582f2bd *R/coxre.r
 b29166e50c2ac1f8df0d22a253ddd407 *R/cprocess.r
@@ -47,5 +47,6 @@ acf1d70a6a0ff86c3739ef24f33e183e *man/ident.Rd
 358e604b400478ed0f22c1714bbb0f7f *man/tpast.Rd
 1c95ce5556588b7d452c908b8e959d14 *man/ttime.Rd
 d2767ac9c69bc1fe1114cac71e01679f *man/tvcov.Rd
+f8effc4812ba177ed06024e1dafad69e *src/event_init.c
 0b4e65ab867bc699bfee736a33015106 *src/ksurvb.c
 3cbe446049bf417dbf84d5f1ee597d1c *src/ksurvg.c

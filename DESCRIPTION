@@ -1,5 +1,5 @@
 Package: event
-Version: 1.1.0
+Version: 1.1.1
 Title: Event History Procedures and Models
 Authors@R: c(
     person("Bruce", "Swihart", email="bruce.swihart@gmail.com", role=c("cre", "aut")),
@@ -8,15 +8,15 @@ Depends: R (>= 1.4), rmutil
 Description: Functions for setting up and analyzing event history data.
 License: GPL-2
 URL: http://www.commanster.eu/rcode.html
-BugReports: https:/github.com/swihart/event/issues
+BugReports: https://github.com/swihart/event/issues
 Encoding: UTF-8
 LazyData: true
 LazyLoad: true
 NeedsCompilation: yes
-Packaged: 2016-12-06 19:30:06 UTC; swihartbj
+Packaged: 2018-05-24 17:48:50 UTC; swihartbj
 Author: Bruce Swihart [cre, aut],
   Jim Lindsey [aut] (Jim created this package, Bruce is maintaining the
     CRAN version)
 Maintainer: Bruce Swihart <bruce.swihart@gmail.com>
 Repository: CRAN
-Date/Publication: 2016-12-07 02:55:00
+Date/Publication: 2018-05-24 18:04:28 UTC
