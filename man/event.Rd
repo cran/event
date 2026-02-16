@@ -64,7 +64,7 @@
 
 \code{\link[rmutil]{read.surv}}	Read a List of Vectors of Event Histories from a File
 
-%% \code{\link[event]{survkit}}		Weibull and Cox Models with Random Effects
+\code{\link[event]{survkit}}		Weibull and Cox Models with Random Effects
 
 \code{\link[event]{tccov}}		Create a Vector of Time-constant Covariates for a Point Process
 

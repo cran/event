@@ -1,15 +1,14 @@
-#------------------------------------------------------------------------------
-#version 1.1.1
-#------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+version 1.1.1
+------------------------------------------------------------------------------
 
-  * Corrected registration notes.
-  * Corrected `plot.dist.km()` issue for the condition `_R_S3_METHOD_LOOKUP_BASEENV_AFTER_GLOBALENV_=true`
+  * Fixed news.md formatting 
+  
+------------------------------------------------------------------------------
+version 1.1.0
+------------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
-#version 1.1.0
-#------------------------------------------------------------------------------
-
-## Major changes ##
+ Major changes 
 
 Passed CRAN checks and is back on CRAN.  Please see github page 
 https://github.com/swihart/event to see the changes required 
@@ -20,16 +19,16 @@ https://github.com/swihart/event/issues.
   *  Removed survkit.  The survkit that was associated with `event` v 1.0 was dated.
   A newer version of survkit, with accessibility to R, is available.  More info
   at https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3693034/ and 
-  http://www.nas.boku.ac.at/nuwi/the-survival-kit/
+  https://www.nas.boku.ac.at/nuwi/the-survival-kit/
 
 **Above this line will be News/Changes for `event` only**
 
-**Below this line corresponds to [changes.txt](http://www.commanster.eu/rcode/changes.txt), which was Jim Lindsey's file for
+**Below this line corresponds to [changes.txt](https://www.commanster.eu/rcode/changes.txt), which was Jim Lindsey's file for
 detailing changes across the v1.0 packages `rmutil`, `repeated`, `gnlm`, `growth`, `event`, `stable` on his homepage**
 
-#------------------------------------------------------------------------------
-#version 1.0
-#------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+version 1.0
+------------------------------------------------------------------------------
 
 30.11.10 (growth)
 
@@ -335,9 +334,9 @@ diagonal constant
       added check that double Poisson, multiplicative Poisson, gamma
       count, and logarithmic data are not censored
       
-#------------------------------------------------------------------------------
-#version 0.9
-#------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+version 0.9
+------------------------------------------------------------------------------
 
 28.4.02
 
@@ -893,9 +892,9 @@ gar: added loglog link for binomial data (corrected cloglog which was,
   * gausscop: multivariate Gaussian copula with arbitrary marginals
   * elliptic.r: several typing errors corrected
 
-#------------------------------------------------------------------------------
-#version 0.8
-#------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+version 0.8
+------------------------------------------------------------------------------
 
 17.10.00
 
@@ -1102,9 +1101,9 @@ gar: added loglog link for binomial data (corrected cloglog which was,
 	    Osman Buyukisk)
   * restovec: responses can have more than one type class
 
-#------------------------------------------------------------------------------
-#version 0.7
-#------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+version 0.7
+------------------------------------------------------------------------------
 
 3.1.2000
 
@@ -1296,9 +1295,9 @@ gar: added loglog link for binomial data (corrected cloglog which was,
 
   * ordglm.r: generalized linear ordinal regression
 
-#------------------------------------------------------------------------------
-#version 0.6
-#------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+version 0.6
+------------------------------------------------------------------------------
 
 21.9.99
 
@@ -1340,9 +1339,9 @@ gar: added loglog link for binomial data (corrected cloglog which was,
   * binnest.f: modified comments to compile with standard Fortran (thanks
 	to Martin Maechler)
 	
-#------------------------------------------------------------------------------
-#version 0.5
-#------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+version 0.5
+------------------------------------------------------------------------------
 
 29.6.99
 
@@ -1473,9 +1472,9 @@ gar: added loglog link for binomial data (corrected cloglog which was,
   * carma.r: corrected predicted values when response is transformed
   * gar.r, kalseries.r: changed handling of transformed responses
 
-#------------------------------------------------------------------------------
-#version 0.4
-#------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+version 0.4
+------------------------------------------------------------------------------
 
 12.4.99
 
@@ -1658,9 +1657,9 @@ gar: added loglog link for binomial data (corrected cloglog which was,
 	agree with kalsurv.r
   * elliptic.r: use var(y) to get initial estimate of variance
 
-#------------------------------------------------------------------------------
-#version 0.3
-#------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+version 0.3
+------------------------------------------------------------------------------
 
 14.1.99
 
@@ -1757,9 +1756,9 @@ gar: added loglog link for binomial data (corrected cloglog which was,
 
   * carmasub.f and survkit.f: changes for compatibility with g77
 
-#------------------------------------------------------------------------------
-#version 0.2
-#------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+version 0.2
+------------------------------------------------------------------------------
 
 2.11.98
 
@@ -1937,6 +1936,6 @@ bessel.r: added docs
 
   * gar.r Corrected predictions for transformed responses
 
-#------------------------------------------------------------------------------
-#version 0.1
-#------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+version 0.1
+------------------------------------------------------------------------------
